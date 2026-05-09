@@ -75,13 +75,8 @@ return {
     event = "VeryLazy",
     dependencies = { "nvim-telescope/telescope.nvim" },
     config = function()
-      require("telescope").setup {
-        extensions = {
-          ["ui-select"] = {
-            require("telescope.themes").get_dropdown {},
-          },
-        },
-      }
+      -- Load the extension only; telescope is already configured by NvChad.
+      -- Calling require("telescope").setup() here would overwrite NvChad's settings.
       require("telescope").load_extension "ui-select"
     end,
   },

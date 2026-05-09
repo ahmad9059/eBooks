@@ -32,14 +32,6 @@ vim.opt.rtp:prepend(lazypath)
 
 local lazy_config = require "configs.lazy"
 
--- force for global virtual_text
-vim.diagnostic.config {
-  virtual_text = true,
-  signs = true,
-  underline = true,
-  update_in_insert = false,
-}
-
 -- load plugins
 require("lazy").setup({
   {

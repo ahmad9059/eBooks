@@ -200,6 +200,12 @@ vim.lsp.enable {
   "docker_compose_language_service",
 }
 
+-- Merge with NvChad's diagnostic config (which sets icons, prefixes, borders).
+-- This only adds update_in_insert = false without overwriting anything else.
+vim.diagnostic.config {
+  update_in_insert = false,
+}
+
 -- -- Python LSP (uncomment when needed)
 -- vim.lsp.config("pyright", {})
 -- vim.lsp.enable { "pyright" }
