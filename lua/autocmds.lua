@@ -23,3 +23,16 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     vim.bo.filetype = "sh"
   end,
 })
+
+-- Detect docker-compose files so docker_compose_language_service LSP attaches correctly
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = {
+    "docker-compose*.yml",
+    "docker-compose*.yaml",
+    "compose*.yml",
+    "compose*.yaml",
+  },
+  callback = function()
+    vim.bo.filetype = "yaml.docker-compose"
+  end,
+})

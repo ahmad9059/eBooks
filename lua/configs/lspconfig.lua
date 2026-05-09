@@ -1,30 +1,37 @@
--- Load NvChad's default LSP config (includes `on_attach` and `capabilities`)
+-- Load NvChad's default LSP config for on_init (semantic tokens disable, etc.)
 local default_config = require "nvchad.configs.lspconfig"
-local on_attach = default_config.on_attach
-local capabilities = default_config.capabilities
+local on_init = default_config.on_init
 
--- LspAttach autocmd for keymaps and per-server tweaks
+-- Use blink.cmp's LSP capabilities (proper snippet/completion support)
+-- This replaces NvChad's old manual capabilities table built for nvim-cmp
+local capabilities = require("blink.cmp").get_lsp_capabilities()
+
+-- Global base config for all servers
+-- NvChad already sets its own LspAttach autocmd for keymaps (gD, gd, <leader>wa, etc.)
+-- We add our own LspAttach ONLY for extra keymaps and per-client tweaks
+vim.lsp.config("*", {
+  capabilities = capabilities,
+  on_init = on_init,
+})
+
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     local bufnr = args.buf
 
-    -- NvChad's default on_attach
-    on_attach(client, bufnr)
-
-    -- Extra keymaps
+    -- Extra keymaps (NvChad already handles gD, gd, <leader>wa, etc.)
     local opts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
     vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
     vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
 
-    -- Disable formatting for ts_ls to avoid conflict with prettier
+    -- Disable ALL formatting for ts_ls so conform/prettierd handles it exclusively
     if client and client.name == "ts_ls" then
       client.server_capabilities.documentFormattingProvider = false
+      client.server_capabilities.documentRangeFormattingProvider = false
     end
 
-    -- Auto-fix all ESLint issues on save (use augroup to prevent stacking)
+    -- Auto-fix all ESLint issues on save
     if client and client.name == "eslint" then
       local group = vim.api.nvim_create_augroup("EslintFixAll_" .. bufnr, { clear = true })
       vim.api.nvim_create_autocmd("BufWritePre", {
@@ -34,19 +41,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
       })
     end
   end,
-})
-
--- Round borders on LSP hover (K) and signature help popups
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "rounded",
-})
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-  border = "rounded",
-})
-
--- Global capabilities for all servers
-vim.lsp.config("*", {
-  capabilities = capabilities,
 })
 
 -- HTML LSP
@@ -72,13 +66,6 @@ vim.lsp.config("marksman", {
 
 -- TypeScript/JavaScript
 vim.lsp.config("ts_ls", {
-  cmd = { "typescript-language-server", "--stdio" },
-  filetypes = {
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-  },
   settings = {
     typescript = {
       preferences = {
@@ -103,13 +90,12 @@ vim.lsp.config("jsonls", {})
 -- ESLint LSP
 vim.lsp.config("eslint", {})
 
--- Emmet LSP
+-- Emmet LSP: limit to HTML/CSS/JSX only (NOT plain javascript/typescript)
 vim.lsp.config("emmet_ls", {
   filetypes = {
     "html",
     "css",
     "scss",
-    "javascript",
     "javascriptreact",
     "typescriptreact",
   },
@@ -173,7 +159,8 @@ vim.lsp.config("dockerls", {})
 -- Docker Compose LSP
 vim.lsp.config("docker_compose_language_service", {})
 
--- Lua LSP (lazydev.nvim handles workspace/library automatically)
+-- Lua LSP: NvChad already enables lua_ls in its defaults() function.
+-- We override specific settings here; lazydev.nvim handles workspace libraries automatically.
 vim.lsp.config("lua_ls", {
   settings = {
     Lua = {
@@ -194,6 +181,7 @@ vim.lsp.config("lua_ls", {
 })
 
 -- Enable all servers
+-- NOTE: lua_ls is intentionally omitted because NvChad's default config already enables it.
 vim.lsp.enable {
   "html",
   "cssls",
@@ -210,9 +198,8 @@ vim.lsp.enable {
   "prismals",
   "dockerls",
   "docker_compose_language_service",
-  "lua_ls",
 }
 
--- -- Python LSP
+-- -- Python LSP (uncomment when needed)
 -- vim.lsp.config("pyright", {})
 -- vim.lsp.enable { "pyright" }

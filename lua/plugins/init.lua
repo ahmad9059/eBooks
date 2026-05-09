@@ -183,10 +183,15 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter",
+    -- CRITICAL: main branch is required for Neovim 0.12+ (tree-sitter 0.25).
+    -- The old master branch explicitly does NOT support Neovim 0.12.
+    branch = "main",
+    build = ":TSUpdate | TSInstallAll",
     opts = {
       ensure_installed = {
         "vim",
         "lua",
+        "luadoc",
         "vimdoc",
         "html",
         "css",
@@ -200,6 +205,8 @@ return {
         "dockerfile",
         "graphql",
         "prisma",
+        "markdown",
+        "markdown_inline",
         "c",
         "cpp",
       },
